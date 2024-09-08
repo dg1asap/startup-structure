@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wayde_network
+
+  backend:
+    build:
+      context: ./wayde
+      dockerfile: Dockerfile
+    container_name: backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: mypassword
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - wayde_network
+
+  frontend:
+    build:
+      context: ./wayde-web
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - wayde_network
+
+volumes:
+  postgres_data:
+
+networks:
+  wayde_network:
+    driver: bridge
